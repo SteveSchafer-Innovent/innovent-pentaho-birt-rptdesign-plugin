@@ -55,34 +55,33 @@ public class BIRTContentGenerator extends SimpleContentGenerator {
 	public void createContent() throws Exception {
 		this.session = PentahoSessionHolder.getSession();
 		this.repository = PentahoSystem.get(IUnifiedRepository.class, session);
-		final RepositoryFile BIRTfile = (RepositoryFile) parameterProviders
+		final RepositoryFile birtFile = (RepositoryFile) parameterProviders
 				.get("path").getParameter("file");
-		final String ExecBIRTFilePath = "../webapps/birt/" + BIRTfile.getId()
-				+ ".rptdesign";
+		final String execBIRTFilePath = "../../tomcat/webapps/birt/"
+				+ birtFile.getId() + ".rptdesign";
 		/*
 		 * Get BIRT report design from repository
 		 */
-		final File ExecBIRTFile = new File(ExecBIRTFilePath);
-		if (!ExecBIRTFile.exists()) {
-			final Writer writer = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(ExecBIRTFilePath), "UTF-8"));
-			try {
-				final SimpleRepositoryFileData data = repository
-						.getDataForRead(BIRTfile.getId(),
-								SimpleRepositoryFileData.class);
-				final Reader reader = new InputStreamReader(
-						data.getInputStream(), "UTF8");
-				int c;
-				while ((c = reader.read()) != -1) {
-					writer.write(c);
-				}
+		final File execBIRTFile = new File(execBIRTFilePath);
+		if (execBIRTFile.exists())
+			execBIRTFile.delete();
+		final Writer writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(execBIRTFilePath), "UTF-8"));
+		try {
+			final SimpleRepositoryFileData data = repository.getDataForRead(
+					birtFile.getId(), SimpleRepositoryFileData.class);
+			final Reader reader = new InputStreamReader(data.getInputStream(),
+					"UTF8");
+			int c;
+			while ((c = reader.read()) != -1) {
+				writer.write(c);
 			}
-			catch (final Exception e) {
-				Logger.error(getClass().getName(), e.getMessage());
-			}
-			finally {
-				writer.close();
-			}
+		}
+		catch (final Exception e) {
+			Logger.error(getClass().getName(), e.getMessage());
+		}
+		finally {
+			writer.close();
 		}
 		/*
 		 * Redirect to BIRT Viewer
@@ -100,10 +99,10 @@ public class BIRTContentGenerator extends SimpleContentGenerator {
 			// Redirect
 			final HttpServletResponse response = (HttpServletResponse) this.parameterProviders
 					.get("path").getParameter("httpresponse");
-			response.sendRedirect("/birt/frameset?__report=" + BIRTfile.getId()
+			response.sendRedirect("/birt/frameset?__report=" + birtFile.getId()
 					+ ".rptdesign&__showtitle=false&username="
 					+ session.getName() + "&userroles=" + roles
-					+ "&reportname=" + BIRTfile.getTitle());
+					+ "&reportname=" + birtFile.getTitle());
 		}
 		catch (final Exception e) {
 			Logger.error(getClass().getName(), e.getMessage());
